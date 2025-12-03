@@ -22,9 +22,9 @@ if [ -d nanochat/.git ]; then
   git -C nanochat pull --ff-only
 else
   if [ -n "${GITHUB_PAT:-}" ]; then
-    git clone "https://${GITHUB_PAT}@github.com/TrelisResearch/nanochat.git"
+    git clone "https://${GITHUB_PAT}@github.com/triple-it/nanochat.git"
   else
-    git clone https://github.com/TrelisResearch/nanochat.git
+    git clone https://github.com/triple-it/nanochat.git
   fi
 fi
 cd nanochat
