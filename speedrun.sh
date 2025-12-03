@@ -9,6 +9,8 @@
 # screen -L -Logfile speedrun.log -S speedrun bash speedrun.sh
 # 3) Example launch with wandb logging, but see below for setting up wandb first:
 # WANDB_RUN=speedrun screen -L -Logfile speedrun.log -S speedrun bash speedrun.sh
+# 4) To disable auto-shutdown after training (to inspect results or restart manually):
+# AUTO_SHUTDOWN=0 WANDB_RUN=d20 screen -L -Logfile speedrun.log -S speedrun bash speedrun.sh
 
 # Default intermediate artifacts directory is in ~/.cache/nanochat
 export OMP_NUM_THREADS=1
@@ -129,3 +131,21 @@ torchrun --standalone --nproc_per_node=$NPROC_PER_NODE -m scripts.chat_eval -- -
 # Generate the full report by putting together all the sections
 # report.md is the output and will be copied to current directory for convenience
 python -m nanochat.report generate
+
+# -----------------------------------------------------------------------------
+# Auto-shutdown (RunPod only)
+# By default, the pod will stop after training to save costs.
+# Set AUTO_SHUTDOWN=0 to keep the pod running (e.g., to inspect results or restart on 0-GPU).
+if [ -n "${RUNPOD_POD_ID:-}" ]; then
+    if [ "${AUTO_SHUTDOWN:-1}" != "0" ]; then
+        echo "Training complete! Auto-shutting down pod in 30 seconds..."
+        echo "To cancel: Ctrl+C and run 'runpodctl stop pod $RUNPOD_POD_ID' manually when ready."
+        sleep 30
+        runpodctl stop pod "$RUNPOD_POD_ID"
+    else
+        echo "Training complete! AUTO_SHUTDOWN=0, pod will keep running."
+        echo "To stop manually: runpodctl stop pod $RUNPOD_POD_ID"
+    fi
+else
+    echo "Training complete! (Not running on RunPod, skipping auto-shutdown)"
+fi
